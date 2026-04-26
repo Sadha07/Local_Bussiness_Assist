@@ -22,7 +22,7 @@ def get_loca_bussiness_data(query: str) -> str:
                    "extract_emails_and_contacts":"false"}
 
     headers = {
-    'x-rapidapi-key': "7749c738c4msh174d20804b83decp1ff0dejsn8f342d80faf0",
+    'x-rapidapi-key': "YOUR KEY",
     'x-rapidapi-host': "local-business-data.p.rapidapi.com",
     'Content-Type': "application/json"
     }
