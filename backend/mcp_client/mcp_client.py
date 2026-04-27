@@ -118,15 +118,23 @@ def get_loca_bussiness_data_tool(query: str) -> str:
 
 @tool("get_business_reviews")
 def get_business_reviews_tool(
-    business_id: str | list[str],
+    business_id: str | list[str] | None = None,
+    id: str | list[str] | None = None,
     limit: int = 30,
     sort_by: str = "most_relevant",
     language: str = "en",
     max_chars_per_review: int = 400,
 ) -> str:
-    """LangChain-compatible tool wrapper to fetch reviews by business id."""
+    """LangChain-compatible tool wrapper to fetch reviews by business id.
+
+    Accepts both `business_id` and `id` to tolerate LLM argument-name drift.
+    """
+    selected_business_id = business_id if business_id is not None else id
+    if selected_business_id is None:
+        raise ValueError("Missing required identifier: provide `business_id` or `id`.")
+
     return get_business_reviews(
-        business_id=business_id,
+        business_id=selected_business_id,
         limit=limit,
         sort_by=sort_by,
         language=language,

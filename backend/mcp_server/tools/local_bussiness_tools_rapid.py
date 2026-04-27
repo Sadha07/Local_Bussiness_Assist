@@ -6,6 +6,10 @@ import time
 import requests
 
 
+def _rapid_host() -> str:
+    return os.getenv("RAPIDAPI_HOST", "local-business-data.p.rapidapi.com")
+
+
 def _debug_enabled() -> bool:
     return os.getenv("LOCAL_BUSINESS_DEBUG", "").strip().lower() in {"1", "true", "yes", "on"}
 
@@ -19,24 +23,27 @@ def _debug_log(message: str, **fields: object) -> None:
 
 def fetch_local_business_data(query: str) -> str:
     """Fetch local business data from RapidAPI and return normalized JSON string."""
-    url = "https://api.openwebninja.com/local-business-data/search"
-    rapidapi_key = os.getenv("RAPIDAPI_KEY")
-    rapidapi_host = os.getenv("RAPIDAPI_HOST", "local-business-data.p.rapidapi.com")
-
+    rapidapi_key = "c39efb5a4emshfb8ff145889886cp172eebjsna4796494b900"
+    rapidapi_host = "local-business-data.p.rapidapi.com"
     if not rapidapi_key:
         raise ValueError("Missing RAPIDAPI_KEY in environment variables.")
 
+    url = f"https://{rapidapi_host}/search"
+
     querystring = {
         "query": query,
-        "limit": "20",
+        "limit": "10",
         "zoom": "13",
         "language": "en",
         "extract_emails_and_contacts": "false",
     }
 
     headers = {
-        "x-api-key": rapidapi_key
+        "x-rapidapi-key": rapidapi_key,
+        "x-rapidapi-host": rapidapi_host,
+        "Content-Type": "application/json",
     }
+
 
     _debug_log(
         "search_request",
@@ -89,25 +96,29 @@ def fetch_business_reviews_by_id(
     language: str = "en",
     max_chars_per_review: int = 400,
 ) -> str:
-    url = "https://api.openwebninja.com/local-business-data/business-reviews"
-    rapidapi_key = os.getenv("RAPIDAPI_KEY")
-
+    rapidapi_key = "c39efb5a4emshfb8ff145889886cp172eebjsna4796494b900"
+    rapidapi_host = "local-business-data.p.rapidapi.com"
     if not rapidapi_key:
         raise ValueError("Missing RAPIDAPI_KEY in environment variables.")
+
+    url = f"https://{rapidapi_host}/business-reviews-v2"
 
     safe_limit = max(1, min(int(limit), 100))
     safe_max_chars = max(80, min(int(max_chars_per_review), 1200))
 
     querystring = {
         "business_id": business_id,
-        "limit": str(safe_limit),
+        "limit": 10,
         "sort_by": sort_by,
         "language": language,
     }
 
     headers = {
-        "x-api-key": rapidapi_key
+        "x-rapidapi-key": rapidapi_key,
+        "x-rapidapi-host": rapidapi_host,
+        "Content-Type": "application/json",
     }
+
 
     _debug_log(
         "reviews_request",

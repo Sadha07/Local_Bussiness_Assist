@@ -3,10 +3,10 @@ from mcp.server.fastmcp import FastMCP
 
 try:
     # Works when imported as package module.
-    from .tools.local_bussiness_tools import fetch_business_reviews_by_id, fetch_local_business_data
+    from .tools.local_bussiness_tools_rapid import fetch_business_reviews_by_id, fetch_local_business_data
 except ImportError:
     # Works when executed directly as a script.
-    from tools.local_bussiness_tools import fetch_business_reviews_by_id, fetch_local_business_data
+    from tools.local_bussiness_tools_rapid import fetch_business_reviews_by_id, fetch_local_business_data
 
 dotenv.load_dotenv()
 
