@@ -10,6 +10,7 @@ from mcp.client.stdio import stdio_client
 SERVER_SCRIPT = Path(__file__).resolve().parent.parent / "mcp_server" / "mcp_server.py"
 
 
+# Input normalization for LLM tool-call variability.
 def _normalize_business_id(business_id: str | Sequence[str]) -> str:
     if isinstance(business_id, str):
         normalized = business_id.strip()
@@ -49,6 +50,7 @@ async def _call_local_business_tool(query: str) -> str:
     return str(result)
 
 
+# Shared MCP invocation wrapper for review-by-business-id calls.
 async def _call_business_reviews_tool(
     business_id: str,
     limit: int = 30,

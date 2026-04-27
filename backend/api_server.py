@@ -18,6 +18,7 @@ app.add_middleware(
 )
 
 
+# Lazy-load the agent so API module import stays lightweight and test-friendly.
 @lru_cache(maxsize=1)
 def _load_agent():
     """Lazily import and cache the LangChain agent instance.
@@ -43,60 +44,6 @@ def _extract_text(result: object) -> str:
     return str(result)
 
 
-def _contains_table_block(lines: list[str]) -> bool:
-    has_pipe_rows = any(line.strip().startswith("|") and line.strip().endswith("|") for line in lines)
-    has_sep = any("---" in line and "|" in line for line in lines)
-    return has_pipe_rows and has_sep
-
-
-def _table_to_bullets(lines: list[str]) -> list[str]:
-    rows = [line.strip() for line in lines if line.strip().startswith("|") and line.strip().endswith("|")]
-    if len(rows) < 3:
-        return lines
-
-    # Skip header + separator and convert data rows to bullets.
-    bullet_rows = []
-    for row in rows[2:]:
-        cols = [cell.strip() for cell in row.strip("|").split("|") if cell.strip()]
-        if cols:
-            bullet_rows.append(f"- {' | '.join(cols)}")
-
-    return bullet_rows if bullet_rows else lines
-
-
-def _normalize_response_text(text: str) -> str:
-    lines = text.splitlines()
-    if not _contains_table_block(lines):
-        return text
-
-    output_lines: list[str] = []
-    block: list[str] = []
-
-    def flush_block() -> None:
-        nonlocal block
-        if not block:
-            return
-        if _contains_table_block(block):
-            output_lines.extend(_table_to_bullets(block))
-        else:
-            output_lines.extend(block)
-        block = []
-
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("|") and stripped.endswith("|"):
-            block.append(line)
-            continue
-        if block and ("---" in stripped and "|" in stripped):
-            block.append(line)
-            continue
-        flush_block()
-        output_lines.append(line)
-
-    flush_block()
-    return "\n".join(output_lines)
-
-
 class ChatRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=4000)
     session_id: str | None = None
@@ -112,6 +59,7 @@ async def health() -> dict:
     return {"status": "ok"}
 
 
+# Main chat endpoint: validates request and returns model output as markdown.
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     user_text = request.content.strip()
@@ -126,7 +74,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
             {"messages": [{"role": "user", "content": user_text}]},
             {"configurable": {"thread_id": session_id}},
         )
-        bot_response = _normalize_response_text(_extract_text(result))
+        bot_response = _extract_text(result)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Agent execution failed: {exc}") from exc
 
