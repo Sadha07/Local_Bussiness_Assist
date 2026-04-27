@@ -1,0 +1,9 @@
+langchain
+langgraph
+langchain-groq
+python-dotenv
+requests
+mcp
+fastapi==0.115.2
+starlette==0.38.6
+uvicorn==0.30.6
